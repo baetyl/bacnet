@@ -104,6 +104,46 @@ func NewClient(netInterface string, port int) (*Client, error) {
 	return c, nil
 }
 
+func NewClientByIp(ip string, port int) (*Client, error) {
+	c := &Client{subscriptions: &Subscriptions{}, transactions: NewTransactions(), Logger: NoOpLogger{}}
+	if port == 0 {
+		port = DefaultUDPPort
+	}
+	c.udpPort = port
+	c.ipAdress = net.ParseIP(ip)
+
+	addr, err := net.InterfaceAddrs()
+	if err != nil {
+		return nil, err
+	}
+	for _, ad := range addr {
+		if ipNet, ok := ad.(*net.IPNet); ok {
+			if ipNet.Contains(c.ipAdress) {
+				broadcast, err := broadcastAddr(ipNet)
+				if err != nil {
+					return nil, err
+				}
+				c.broadcastAddress = broadcast
+				break
+			}
+		}
+	}
+	if c.broadcastAddress == nil {
+		return nil, errors.New("broadcast address not found")
+	}
+
+	conn, err := net.ListenUDP("udp4", &net.UDPAddr{
+		IP:   net.IPv4zero,
+		Port: c.udpPort,
+	})
+	if err != nil {
+		return nil, err
+	}
+	c.udp = conn
+	go c.listen()
+	return c, nil
+}
+
 //NewClientNoNetInterface 创建一个bacnet client，使用默认的47808端口，监听0.0.0.0:47808的bacnet消息,未指定发送消息时的IpAddress,broadcastAddress
 func NewClientNoNetInterface() (*Client, error) {
 	c := &Client{subscriptions: &Subscriptions{}, transactions: NewTransactions(), Logger: NoOpLogger{}}
@@ -183,13 +223,16 @@ func (c *Client) WhoIs(data WhoIs, timeout time.Duration) ([]bacnet.Device, erro
 		IsNetworkLayerMessage: false,
 		ExpectingReply:        false,
 		Priority:              Normal,
-		Destination:           nil,
-		Source:                nil,
+		Destination: &bacnet.Address{
+			Net: uint16(0xffff), // global broadcast
+		},
+		Source: nil,
 		ADPU: &APDU{
 			DataType:    UnconfirmedServiceRequest,
 			ServiceType: ServiceUnconfirmedWhoIs,
 			Payload:     &data,
 		},
+		HopCount: 255, // router count
 	}
 
 	rChan := make(chan struct {
