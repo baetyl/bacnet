@@ -106,22 +106,21 @@ func (e *Encoder) ContextSigned(tabNumber byte, value int32) {
 func (e *Encoder) ContextNull(tabNumber byte) {
 	t := tag{
 		ID:    tabNumber,
-		Value: 0,
+		Value: 1,
 	}
 	encodeTag(e.buf, t)
 }
 
 func (e *Encoder) ContextBoolean(tabNumber byte, value bool) {
+	var i uint32
+	if value {
+		i = 1
+	}
 	t := tag{
 		ID:    tabNumber,
-		Value: 1,
+		Value: i,
 	}
 	encodeTag(e.buf, t)
-	if value {
-		e.buf.WriteByte(1)
-	} else {
-		e.buf.WriteByte(0)
-	}
 }
 
 func (e *Encoder) ContextTypeReal(tabNumber byte, value float32) {
@@ -312,7 +311,7 @@ func (e *Encoder) ContextAsbtractType(tabNumber byte, v bacnet.PropertyValue) er
 		if !ok {
 			return fmt.Errorf("wrong value, value:[%v]", reflect.ValueOf(v.Value).Type())
 		}
-		e.ContextUnsignedNoContext(byte(v.Type), val)
+		e.ContextUnsigned(byte(v.Type), val)
 	case bacnet.TypeSignedInt:
 		val, ok := v.Value.(int32)
 		if !ok {

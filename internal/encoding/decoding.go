@@ -143,7 +143,7 @@ func (d *Decoder) AppData(v interface{}) {
 	rv = rv.Elem()
 	switch tag.ID {
 	case applicationTagNull:
-		rv.Set(reflect.ValueOf(bacnet.PropertyNullValue))
+		//nothing to do
 	case applicationTagUnsignedInt:
 		val, err := decodeUnsignedWithLen(d.buf, int(tag.Value))
 		if err != nil {
@@ -228,7 +228,8 @@ func (d *Decoder) AppData(v interface{}) {
 			return
 		}
 		rv.Set(reflect.ValueOf(obj))
-
+	case applicationTagBoolean:
+		rv.Set(reflect.ValueOf(tag.Value != 0))
 	default:
 		//TODO: support all app data types
 		d.err = fmt.Errorf("decodeAppData: unsupported type 0x%x", tag.ID)

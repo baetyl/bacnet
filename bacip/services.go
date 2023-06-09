@@ -100,13 +100,7 @@ func (rp *ReadProperty) UnmarshalBinary(data []byte) error {
 		rp.Property.ArrayIndex = nil
 		decoder.ResetError()
 	}
-	if rp.Property.Type == bacnet.PriorityArray {
-		res := decoder.ContextPriorityArray(3)
-		log.Printf("%v", res)
-		rp.Data = res
-	} else {
-		decoder.ContextAbstractType(3, &rp.Data)
-	}
+	decoder.ContextAbstractType(3, &rp.Data)
 	return decoder.Error()
 }
 
@@ -122,7 +116,7 @@ func (wp WriteProperty) MarshalBinary() ([]byte, error) {
 	encoder.ContextObjectID(0, wp.ObjectID)
 	encoder.ContextUnsigned(1, uint32(wp.Property.Type))
 	if wp.Property.ArrayIndex != nil {
-		encoder.ContextUnsigned(2, *wp.Property.ArrayIndex)
+		encoder.ContextUnsigned(2, uint32(*wp.Property.ArrayIndex))
 	}
 	err := encoder.ContextAsbtractType(3, wp.PropertyValue)
 	if err != nil {
