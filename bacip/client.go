@@ -1,4 +1,4 @@
-//Package bacip implements a Bacnet/IP client
+// Package bacip implements a Bacnet/IP client
 package bacip
 
 import (
@@ -50,9 +50,9 @@ func broadcastAddr(n *net.IPNet) (net.IP, error) {
 	return ip, nil
 }
 
-//NewClient creates a new bacnet client. It binds on the given port
-//and network interface (eth0 for example). If Port if 0, the default
-//bacnet port is used
+// NewClient creates a new bacnet client. It binds on the given port
+// and network interface (eth0 for example). If Port if 0, the default
+// bacnet port is used
 func NewClient(netInterface string, port int) (*Client, error) {
 	c := &Client{subscriptions: &Subscriptions{}, transactions: NewTransactions(), Logger: NoOpLogger{}}
 	i, err := net.InterfaceByName(netInterface)
@@ -110,7 +110,7 @@ func NewClientByIp(ip string, port int) (*Client, error) {
 		port = DefaultUDPPort
 	}
 	c.udpPort = port
-	c.ipAdress = net.ParseIP(ip)
+	c.ipAddress = net.ParseIP(ip)
 
 	addr, err := net.InterfaceAddrs()
 	if err != nil {
@@ -118,7 +118,7 @@ func NewClientByIp(ip string, port int) (*Client, error) {
 	}
 	for _, ad := range addr {
 		if ipNet, ok := ad.(*net.IPNet); ok {
-			if ipNet.Contains(c.ipAdress) {
+			if ipNet.Contains(c.ipAddress) {
 				broadcast, err := broadcastAddr(ipNet)
 				if err != nil {
 					return nil, err
@@ -144,7 +144,7 @@ func NewClientByIp(ip string, port int) (*Client, error) {
 	return c, nil
 }
 
-//NewClientNoNetInterface 创建一个bacnet client，使用默认的47808端口，监听0.0.0.0:47808的bacnet消息,未指定发送消息时的IpAddress,broadcastAddress
+// NewClientNoNetInterface 创建一个bacnet client，使用默认的47808端口，监听0.0.0.0:47808的bacnet消息,未指定发送消息时的IpAddress,broadcastAddress
 func NewClientNoNetInterface() (*Client, error) {
 	c := &Client{subscriptions: &Subscriptions{}, transactions: NewTransactions(), Logger: NoOpLogger{}}
 	c.udpPort = DefaultUDPPort
@@ -316,7 +316,7 @@ func (c *Client) WhoIs(data WhoIs, timeout time.Duration) ([]bacnet.Device, erro
 	}
 }
 
-//WhoIsWithNetInterface 向指定网卡发送WhoIs消息，传入的adr形如"192.0.2.0/24"形式,Client的默认IpAddress，BroadcastAddress会变成指定网卡的ip及broadcast
+// WhoIsWithNetInterface 向指定网卡发送WhoIs消息，传入的adr形如"192.0.2.0/24"形式,Client的默认IpAddress，BroadcastAddress会变成指定网卡的ip及broadcast
 func (c *Client) WhoIsWithNetInterface(ip net.IP, ipNet *net.IPNet, data WhoIs, timeout time.Duration) ([]bacnet.Device, error) {
 	// To4 is nil when type is ip6
 	if ip.To4() != nil {
@@ -376,7 +376,7 @@ func (c *Client) ReadProperty(ctx context.Context, device bacnet.Device, readPro
 	}
 }
 
-//ReadPropertyWithNetInterface 向指定网卡发送read消息，传入的adr形如"192.0.2.0/24"形式,Client的默认IpAddress，BroadcastAddress会变成指定网卡的ip及broadcast
+// ReadPropertyWithNetInterface 向指定网卡发送read消息，传入的adr形如"192.0.2.0/24"形式,Client的默认IpAddress，BroadcastAddress会变成指定网卡的ip及broadcast
 func (c *Client) ReadPropertyWithNetInterface(ip net.IP, ipNet *net.IPNet, ctx context.Context, device bacnet.Device, readProp ReadProperty) (interface{}, error) {
 	// To4 is nil when type is ip6
 	if ip.To4() != nil {
@@ -437,7 +437,7 @@ func (c *Client) WriteProperty(ctx context.Context, device bacnet.Device, writeP
 
 }
 
-//WritePropertyWithNetInterface 向指定网卡发送write消息，传入的adr形如"192.0.2.0/24"形式，Client的默认IpAddress，BroadcastAddress会变成指定网卡的ip及broadcast
+// WritePropertyWithNetInterface 向指定网卡发送write消息，传入的adr形如"192.0.2.0/24"形式，Client的默认IpAddress，BroadcastAddress会变成指定网卡的ip及broadcast
 func (c *Client) WritePropertyWithNetInterface(ip net.IP, ipNet *net.IPNet, ctx context.Context, device bacnet.Device, writeProp WriteProperty) error {
 	// To4 is nil when type is ip6
 	if ip.To4() != nil {
