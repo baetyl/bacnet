@@ -3,7 +3,6 @@ package bacip
 import (
 	"errors"
 	"fmt"
-	"log"
 
 	"github.com/chen-Leo/bacnet"
 	"github.com/chen-Leo/bacnet/internal/encoding"
